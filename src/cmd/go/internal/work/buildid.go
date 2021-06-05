@@ -159,7 +159,7 @@ func (b *Builder) toolID(name string) string {
 	}
 
 	cmdline := str.StringList(cfg.BuildToolexec, path, "-V=full")
-	cmd := exec.Command(cmdline[0], cmdline[1:]...)
+	cmd := cacheCommand(cmdline[0], cmdline[1:]...)
 	cmd.Env = base.AppendPWD(os.Environ(), cmd.Dir)
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
@@ -218,7 +218,7 @@ func (b *Builder) gccToolID(name, language string) (string, error) {
 	// version strings. Use -x to set the language. Pretend to
 	// compile an empty file on standard input.
 	cmdline := str.StringList(cfg.BuildToolexec, name, "-###", "-x", language, "-c", "-")
-	cmd := exec.Command(cmdline[0], cmdline[1:]...)
+	cmd := cacheCommand(cmdline[0], cmdline[1:]...)
 	cmd.Env = base.AppendPWD(os.Environ(), cmd.Dir)
 	// Force untranslated output so that we see the string "version".
 	cmd.Env = append(cmd.Env, "LC_ALL=C")
@@ -286,10 +286,10 @@ func (b *Builder) gccToolID(name, language string) (string, error) {
 
 // Check if assembler used by gccgo is GNU as.
 func assemblerIsGas() bool {
-	cmd := exec.Command(BuildToolchain.compiler(), "-print-prog-name=as")
+	cmd := cacheCommand(BuildToolchain.compiler(), "-print-prog-name=as")
 	assembler, err := cmd.Output()
 	if err == nil {
-		cmd := exec.Command(strings.TrimSpace(string(assembler)), "--version")
+		cmd := cacheCommand(strings.TrimSpace(string(assembler)), "--version")
 		out, err := cmd.Output()
 		return err == nil && strings.Contains(string(out), "GNU")
 	} else {

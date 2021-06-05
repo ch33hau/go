@@ -5,12 +5,14 @@
 package work
 
 import (
+	"cmd/go/internal/par"
 	"context"
 	"errors"
 	"fmt"
 	"go/build"
 	exec "internal/execabs"
 	"os"
+	exec2 "os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -799,9 +801,46 @@ func FindExecCmd() []string {
 	if cfg.Goos == runtime.GOOS && cfg.Goarch == runtime.GOARCH {
 		return ExecCmd
 	}
-	path, err := exec.LookPath(fmt.Sprintf("go_%s_%s_exec", cfg.Goos, cfg.Goarch))
+	resolved := cacheLookPath(fmt.Sprintf("go_%s_%s_exec", cfg.Goos, cfg.Goarch))
+	path, err := resolved.path, resolved.err
 	if err == nil {
 		ExecCmd = []string{path}
 	}
 	return ExecCmd
+}
+
+type resolvedPath struct {
+	path string
+	err  error
+}
+
+var pathCache par.Cache
+
+func cacheLookPath(path string) resolvedPath {
+	r := pathCache.Do(path, func() interface{} {
+		p, err := exec.LookPath(path)
+		rp := &resolvedPath{p, err}
+		return rp
+	}).(resolvedPath)
+	return r
+}
+
+//type resolvedCommand struct {
+//	cmd *exec2.Cmd
+//	err  error
+//}
+
+var commandCache par.Cache
+
+func cacheCommand(name string, arg ...string) *exec2.Cmd {
+	r := commandCache.Do(name, func() interface{} {
+		//fmt.Printf("Caching %s ...\n", name)
+		command := exec.Command(name, arg...)
+		return command
+	}).(*exec2.Cmd)
+
+	if r.Path != "" {
+		return exec.Command(r.Path, arg...)
+	}
+	return r
 }

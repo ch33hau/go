@@ -2071,7 +2071,7 @@ func (b *Builder) runOut(a *Action, dir string, env []string, cmdargs ...interfa
 	}
 
 	var buf bytes.Buffer
-	cmd := exec.Command(cmdline[0], cmdline[1:]...)
+	cmd := cacheCommand(cmdline[0], cmdline[1:]...)
 	if cmd.Path != "" {
 		cmd.Args[0] = cmd.Path
 	}
@@ -2592,7 +2592,7 @@ func (b *Builder) gccSupportsFlag(compiler []string, flag string) bool {
 			return false
 		}
 	}
-	cmd := exec.Command(cmdArgs[0], cmdArgs[1:]...)
+	cmd := cacheCommand(cmdArgs[0], cmdArgs[1:]...)
 	cmd.Dir = b.WorkDir
 	cmd.Env = base.AppendPWD(os.Environ(), cmd.Dir)
 	cmd.Env = append(cmd.Env, "LC_ALL=C")

@@ -167,6 +167,10 @@ type Cmd struct {
 // quoting yourself and provide the full command line in SysProcAttr.CmdLine,
 // leaving Args empty.
 func Command(name string, arg ...string) *Cmd {
+	//fmt.Printf("calling Command... name:[%s], base: [%s], arg:[%v]\n", name, filepath.Base(name), arg)
+	//if name == "pkg/tool/darwin_amd64/compile" {
+	//	panic("testing")
+	//}
 	cmd := &Cmd{
 		Path: name,
 		Args: append([]string{name}, arg...),
